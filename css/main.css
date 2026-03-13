@@ -1,33 +1,52 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+/* Base Body Styles */
 body {
-    background-color: #050505;
-    background-image: 
-        radial-gradient(circle at 50% 0%, #1a1b26 0%, transparent 60%),
-        radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
-    color: #ededed;
+    background-color: #f8fafc;
+    color: #0f172a;
     background-attachment: fixed;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
+/* Light Mode Cards */
 .glass-card {
-    background: linear-gradient(145deg, rgba(20, 20, 22, 0.8) 0%, rgba(10, 10, 12, 0.6) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
-.glass-card:hover { border-color: rgba(255, 255, 255, 0.12); }
+.glass-card:hover { border-color: rgba(0, 0, 0, 0.1); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08); }
 
-.modal-overlay { background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); transition: opacity 0.3s ease; }
+/* PERFECT DARK MODE OVERRIDES */
+.dark body {
+    background-color: #050507;
+    color: #f8fafc;
+    background-image: radial-gradient(circle at 50% 0%, #111116 0%, transparent 60%);
+}
+.dark ::-webkit-scrollbar-thumb { background: #333338; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #44444c; }
+
+.dark .glass-card {
+    background: linear-gradient(145deg, rgba(20, 20, 24, 0.9) 0%, rgba(12, 12, 14, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 30px -5px rgba(0, 0, 0, 0.4);
+}
+.dark .glass-card:hover { border-color: rgba(255, 255, 255, 0.15); box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.5); }
+
+/* Modals */
+.modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); transition: opacity 0.3s ease; }
 .modal-content { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-#toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-.toast { padding: 14px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; color: white; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px -5px rgba(0,0,0,0.5); animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.toast.success { background: #050505; border-left: 4px solid #10b981; }
-.toast.error { background: #050505; border-left: 4px solid #ef4444; }
 
+/* Custom Checkbox */
+.att-checkbox { width: 22px; height: 22px; cursor: pointer; accent-color: #3b82f6; }
+
+/* Toasts */
+#toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
+.toast { padding: 16px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; color: white; box-shadow: 0 15px 40px -5px rgba(0,0,0,0.3); animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.toast.success { background: #0f172a; border-left: 4px solid #10b981; }
+.toast.error { background: #0f172a; border-left: 4px solid #ef4444; }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
