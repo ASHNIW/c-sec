@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    
+    <title>Workspace | Class Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="css/main.css" rel="stylesheet">
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: '#3b82f6', borderDark: 'rgba(255,255,255,0.06)' } } } }
+        // Register Service Worker for PWA Native Install
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
+    </script>
+</head>
+<body class="font-sans antialiased overflow-hidden selection:bg-brand selection:text-white">
+    <div id="toast-container"></div>
+
+    <div id="auth-layout" class="absolute inset-0 z-[100] flex items-center justify-center bg-[#050505]/90 backdrop-blur-xl transition-opacity duration-500">
+        <div class="w-full max-w-sm p-8 glass-card rounded-3xl relative">
+            <div id="login-view">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-6 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h1 class="text-2xl font-bold mb-1 tracking-tight">Access Portal</h1>
+                <p class="text-sm text-gray-400 mb-8">Enter your university credentials.</p>
+                <form id="loginForm" class="space-y-4">
+                    <input type="text" id="rollNumber" placeholder="Roll Number" required class="w-full px-4 py-3 bg-black/50 border border-borderDark rounded-xl text-sm outline-none focus:border-brand transition-colors">
+                    <input type="password" id="password" placeholder="Password" required class="w-full px-4 py-3 bg-black/50 border border-borderDark rounded-xl text-sm outline-none focus:border-brand transition-colors">
+                    <div class="flex justify-end">
+                        <button type="button" onclick="switchAuthView('forgot-view')" class="text-xs text-gray-400 hover:text-white">Forgot password?</button>
+                    </div>
+                    <button type="submit" id="loginBtn" class="w-full bg-white text-black font-semibold py-3 rounded-xl text-sm hover:bg-gray-200 transition-all active:scale-[0.98]">Sign In →</button>
+                    <p id="login-status" class="text-xs text-center text-gray-500 hidden pt-2 animate-pulse">Authenticating...</p>
+                </form>
+            </div>
+            <div id="forgot-view" class="hidden">
+                <h1 class="text-2xl font-bold mb-1 tracking-tight text-gray-900 dark:text-white">Reset Access</h1>
+                <p class="text-sm text-gray-500 mb-8">Account recovery process.</p>
+                
+                <form id="forgotFormStep1" class="space-y-4">
+                    <input type="text" id="resetRoll" placeholder="Enter Roll Number" required class="w-full px-4 py-3 bg-white dark:bg-black/50 border border-slate-300 dark:border-borderDark rounded-xl text-sm outline-none focus:border-brand text-slate-900 dark:text-white transition-colors">
+                    <button type="submit" id="getQBtn" class="w-full bg-slate-900 dark:bg-white text-white dark:text-black font-bold py-3 rounded-xl text-sm active:scale-[0.98] transition-all">Find Account</button>
+                </form>
+
+                <form id="forgotFormStep2" class="space-y-4 hidden mt-4">
+                    <div class="bg-brand/10 border border-brand/20 p-4 rounded-xl">
+                        <p class="text-xs text-brand font-bold uppercase tracking-widest mb-1">Security Question</p>
+                        <p id="display-sec-q" class="text-sm text-slate-900 dark:text-white font-medium"></p>
+                    </div>
+                    <input type="text" id="resetAnswer" placeholder="Your Answer" required class="w-full px-4 py-3 bg-white dark:bg-black/50 border border-slate-300 dark:border-borderDark rounded-xl text-sm outline-none focus:border-brand text-slate-900 dark:text-white transition-colors">
+                    <button type="submit" id="resetBtn" class="w-full bg-brand text-white font-bold py-3 rounded-xl text-sm hover:bg-blue-600 active:scale-[0.98] transition-all">Request Reset</button>
+                </form>
+
+                <button type="button" onclick="resetForgotFlow()" class="w-full text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white mt-6 transition-colors">← Back to Login</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resource-modal" class="modal-overlay fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0">
+        <div class="modal-content w-full max-w-md glass-card rounded-3xl p-6 relative">
+            <button onclick="closeModal()" class="absolute top-5 right-5 text-gray-500 hover:text-white bg-white/5 rounded-full p-1.5">✕</button>
+            <h2 class="text-xl font-bold mb-1" id="modal-title">Publish Content</h2>
+            <p class="text-sm text-brand mb-6" id="modal-subtitle">Ecosystem Admin</p>
+            <form id="add-resource-form" class="space-y-4">
+                <select id="res-type" class="w-full bg-black/50 border border-borderDark rounded-xl px-4 py-3 text-sm outline-none text-gray-200 focus:border-brand">
+                    <option value="Notes">Class Document (URL)</option>
+                    <option value="Excels">Data Spreadsheet (URL)</option>
+                    <option value="Announcements">Subject Announcement</option>
+                </select>
+                <input type="text" id="res-title" placeholder="Title" required class="w-full bg-black/50 border border-borderDark rounded-xl px-4 py-3 text-sm outline-none focus:border-brand">
+                <input type="text" id="res-link-desc" placeholder="Link URL or Description" required class="w-full bg-black/50 border border-borderDark rounded-xl px-4 py-3 text-sm outline-none focus:border-brand">
+                <button type="submit" id="addResourceBtn" class="w-full bg-brand text-white font-semibold py-3 rounded-xl text-sm hover:bg-blue-600 active:scale-[0.98]">Publish to Ecosystem</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="module-modal" class="modal-overlay fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0">
+        <div class="modal-content w-full max-w-md glass-card rounded-3xl p-6 relative">
+            <button onclick="closeModuleModal()" class="absolute top-5 right-5 text-gray-500 hover:text-white bg-white/5 rounded-full p-1.5">✕</button>
+            <h2 class="text-xl font-bold mb-1 tracking-tight text-white" id="mod-modal-title">Create Folder</h2>
+            <p class="text-sm text-brand mb-6" id="mod-modal-subtitle">Ecosystem Architecture</p>
+            <form id="add-module-form" class="space-y-4">
+                <input type="hidden" id="mod-type">
+                <input type="text" id="mod-input-name" placeholder="Folder Name" required class="w-full bg-black/50 border border-borderDark rounded-xl px-4 py-3 text-sm outline-none focus:border-brand text-white">
+                <button type="submit" id="addModuleBtn" class="w-full bg-brand text-white font-semibold py-3 rounded-xl text-sm hover:bg-blue-600 active:scale-[0.98] transition-all">Create Folder</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="announcement-modal" class="modal-overlay fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0">
+        <div class="modal-content w-full max-w-md glass-card rounded-3xl p-6 relative">
+            <button onclick="closeAnnModal()" class="absolute top-5 right-5 text-gray-500 hover:text-white bg-white/5 rounded-full p-1.5">✕</button>
+            <h2 class="text-xl font-bold mb-1 tracking-tight text-white" id="ann-modal-title">Global Notice</h2>
+            <p class="text-sm text-brand mb-6">Broadcast to all students</p>
+            <form id="global-ann-form" class="space-y-4">
+                <input type="hidden" id="g-ann-mode" value="create">
+                <input type="hidden" id="g-ann-original-date">
+                <input type="text" id="g-ann-title" placeholder="Announcement Title" required class="w-full bg-black/50 border border-borderDark rounded-xl px-4 py-3 text-sm outline-none focus:border-brand text-white">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <select id="g-ann-priority" class="w-full bg-black/50 border border-borderDark rounded-xl px-4 py-3 text-sm outline-none focus:border-brand text-gray-300">
+                        <option value="Normal">🟢 Normal Priority</option>
+                        <option value="High">🔴 High Priority (Urgent)</option>
+                        <option value="Low">⚪ Low Priority</option>
+                    </select>
+                    <input type="date" id="g-ann-valid" title="Valid Until" required class="w-full bg-black/50 border border-borderDark rounded-xl px-4 py-3 text-sm outline-none focus:border-brand text-gray-300 cursor-pointer">
+                </div>
+
+                <textarea id="g-ann-desc" placeholder="Message details..." required class="w-full bg-black/50 border border-borderDark rounded-xl px-4 py-3 text-sm outline-none focus:border-brand text-white h-24 resize-none"></textarea>
+                <button type="submit" id="postAnnBtn" class="w-full bg-brand text-white font-semibold py-3 rounded-xl text-sm hover:bg-blue-600 active:scale-[0.98] transition-all">Broadcast Notice</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="shutdown-screen" class="fixed inset-0 z-[200] bg-[#050505] flex flex-col items-center justify-center hidden">
+        <div class="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </div>
+        <h1 class="text-4xl font-bold text-white mb-2">System Offline</h1>
+        <p class="text-gray-400 text-center max-w-md px-4">The Class Portal is currently undergoing maintenance by the Administrator. Please try accessing the platform later.</p>
+        <button onclick="logout()" class="mt-8 bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-xl font-medium transition-colors">Return to Login</button>
+    </div>
+
+    <div id="app-layout" class="h-screen w-full flex hidden relative z-10">
+        <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-30 hidden md:hidden"></div>
+
+        <aside id="sidebar" class="fixed md:relative inset-y-0 left-0 z-40 w-64 border-r border-borderDark bg-[#050505]/80 backdrop-blur-2xl flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+            <div class="h-16 flex items-center justify-between px-6 border-b border-borderDark">
+                <div class="flex items-center">
+                    <span class="text-xl font-black tracking-widest text-slate-900 dark:text-white uppercase">CSE C</span>
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white">✕</button>
+            </div>
+            
+            <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5" id="main-nav">
+                <button onclick="switchMainView('dashboard')" class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white bg-white/10 transition-colors">
+                    <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg> Dashboard
+                </button>
+                <button onclick="switchMainView('workspace')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                    <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Ecosystem
+                </button>
+                <button onclick="switchMainView('directory')" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                    <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> Directory
+                </button>
+                <button id="nav-admin" onclick="switchMainView('admin')" class="nav-btn hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-brand hover:bg-brand/10 transition-colors mt-6 border border-brand/20">
+                    <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Admin Console
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-borderDark">
+                <div onclick="switchMainView('profile')" class="flex items-center justify-between cursor-pointer p-2 rounded-xl hover:bg-white/5 transition-colors group">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-700 to-gray-500 flex items-center justify-center text-xs font-bold text-white shadow-inner" id="ui-avatar">U</div>
+                        <div class="truncate">
+                            <div class="text-sm font-medium text-white truncate" id="ui-username">User</div>
+                            <div class="text-[10px] text-gray-500 group-hover:text-brand font-medium transition-colors" id="ui-role">Profile & Settings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col relative w-full overflow-hidden">
+            <header class="h-16 border-b border-borderDark flex items-center justify-between px-4 md:px-8 bg-[#050505]/60 backdrop-blur-md sticky top-0 z-20">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                    <div class="text-sm font-medium text-gray-400 flex items-center gap-2" id="breadcrumb"><span class="text-white">Dashboard</span></div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="forceSync()" class="text-xs text-gray-400 hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-borderDark bg-white/5 transition-colors"><svg id="sync-icon" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Sync</button>
+                    <button onclick="logout()" title="Secure Logout" class="text-gray-500 hover:text-red-400 p-1.5 bg-white/5 rounded-lg border border-borderDark transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 relative">
+                <div class="max-w-7xl mx-auto" id="workspace-canvas">
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

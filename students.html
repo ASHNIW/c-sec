@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directory | Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { bgDark: '#0E1015', cardDark: '#1A1D24', brand: '#5E6AD2' } } }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50 dark:bg-bgDark text-gray-900 dark:text-gray-100 h-screen flex overflow-hidden font-sans">
+
+    <aside class="w-64 bg-white dark:bg-cardDark border-r border-gray-200 dark:border-gray-800 flex flex-col hidden md:flex">
+        <div class="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-800">
+            <span class="font-semibold text-lg tracking-tight">Class Portal</span>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-1">
+            <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252830] rounded-lg">Dashboard</a>
+            <a href="students.html" class="flex items-center gap-3 px-3 py-2 bg-gray-100 dark:bg-[#252830] text-brand rounded-lg font-medium">Student Directory</a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252830] rounded-lg">Class Notes</a>
+            <a href="#" id="adminMenu" class="hidden flex items-center gap-3 px-3 py-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mt-8">Admin Panel</a>
+        </nav>
+        <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+            <button onclick="logout()" class="w-full text-left px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-red-500 rounded-lg">Log Out</button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <header class="h-16 bg-white dark:bg-cardDark border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-8">
+            <h1 class="font-semibold">Student Directory</h1>
+            <div class="flex items-center gap-4">
+                <span id="userNameDisplay" class="text-sm font-medium"></span>
+                <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white font-semibold text-sm">👤</div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8">
+            <div class="bg-white dark:bg-cardDark border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 dark:bg-[#13151A] border-b border-gray-200 dark:border-gray-800 text-sm text-gray-500 dark:text-gray-400">
+                            <th class="p-4 font-medium">Name</th>
+                            <th class="p-4 font-medium">Roll Number</th>
+                            <th class="p-4 font-medium">Email</th>
+                            <th class="p-4 font-medium">Role</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <tr>
+                            <td colspan="4" class="p-8 text-center text-sm text-gray-500">Loading directory data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        async function loadStudents() {
+            const tableBody = document.getElementById('studentTableBody');
+            const res = await apiCall('getStudents');
+            
+            if (res.success) {
+                tableBody.innerHTML = '';
+                res.students.forEach(student => {
+                    const isAdmin = student.role === 'Admin';
+                    const roleStyles = isAdmin 
+                        ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
+                        : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+                    
+                    const row = `
+                        <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#13151A] transition-colors">
+                            <td class="p-4 text-sm font-medium">${student.name || '-'}</td>
+                            <td class="p-4 text-sm text-gray-500">${student.rollNumber || '-'}</td>
+                            <td class="p-4 text-sm text-gray-500">${student.email || '-'}</td>
+                            <td class="p-4 text-sm">
+                                <span class="px-2 py-1 rounded-md text-xs font-medium ${roleStyles}">
+                                    ${student.role || 'Student'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-500">Failed to load data from Google Sheets.</td></tr>`;
+            }
+        }
+        
+        loadStudents();
+    </script>
+</body>
+</html>
