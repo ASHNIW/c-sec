@@ -1,26 +1,19 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbwOXwlUyFa9pvq8OjcIHyTV6kdn6bGd3D2r__iyOnPwrnjZ7ukkHv1_kOVpEoY1EaFujw/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzA0EXeir55_X1U0yQBwFd9vSRkF121h-1usoRFJL5LSuhcKsMg44T9KwVkPDNq7GR1oQ/exec';
 
-async function apiCall(action, payload = {}) {
-    try {
-        const token = localStorage.getItem('adminToken') || '';
-        
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ action, token, ...payload })
-        });
-        return await response.json();
-    } catch (error) {
-        console.error("API Error:", error);
-        return { success: false, message: 'Network error. Please try again.' };
-    }
-}
+async function apiCall(action, data = {}) {
+  try {
+    const token = localStorage.getItem('adminToken');
+    const payload = { action, ...data };
+    if (token) payload.token = token;
 
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerText = message;
-    container.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    return await response.json();
+  } catch (err) {
+    console.error(`[API] ${action} failed:`, err);
+    return { success: false, message: "Server connection failed." };
+  }
 }

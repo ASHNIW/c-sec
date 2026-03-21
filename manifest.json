@@ -4,7 +4,7 @@
   "description": "Student ecosystem and resource dashboard.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#050505",
+  "background_color": "#03030a",
   "theme_color": "#3b82f6",
   "icons": [
     {
